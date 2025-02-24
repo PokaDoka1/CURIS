@@ -9,8 +9,7 @@ from typing import List, Optional, Dict, Any
 
 class FailureType(Enum):
     EXECUTION = "Execution"
-    # Poor planing or execution (confusion)
-    STRATEGIC = "Strategic"
+    STRATEGIC = "Strategic" # Strategic failure type is confusion by the agent
     LOOP = "Loop"
     SYNTAX = "Syntax"
     TIMEOUT = "Timeout"
@@ -191,6 +190,12 @@ class AgentFailureDetector:
             
         return False"""
 
+    def _print_append_failure(self, failure_instance, failures):
+        if (failure_instance != None):
+                    failures.append(failure_instance)
+                    _print_failure(failure_instance)
+                    print("\n")
+
     # analyze_interactoin checks for every different failure type, and prints all the failures it finds from the logged data
     def analyze_interaction(self, model_responses):
         failures = []
@@ -208,10 +213,7 @@ class AgentFailureDetector:
                     context = {'response': execution_error}
                 )
 
-                if (failure_instance != None):
-                    failures.append(failure_instance)
-                    _print_failure(failure_instance)
-                    print("\n")
+                self._print_append_failure(failure_instance, failures)
 
         for response in model_responses:
             strategic_failure = self._get_strategic_failure(response)
@@ -223,10 +225,7 @@ class AgentFailureDetector:
                     context = {'response': strategic_failure}
                 )
 
-                if (failure_instance != None):
-                    failures.append(failure_instance)
-                    _print_failure(failure_instance)
-                    print("\n")
+                self._print_append_failure(failure_instance, failures)
 
         repeated_commands = self._get_repeating_commands(filtered_commands)
         if repeated_commands:
@@ -238,10 +237,7 @@ class AgentFailureDetector:
                     context = "N/A"
                 )
 
-                if (failure_instance != None):
-                    failures.append(failure_instance)
-                    _print_failure(failure_instance)
-                    print("\n")
+                self._print_append_failure(failure_instance, failures)
         return None
         
     # populate the model_responses.txt file with the agent's model responses to better aid with debugging
