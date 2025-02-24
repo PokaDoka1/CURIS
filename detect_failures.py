@@ -61,35 +61,30 @@ class AgentFailureDetector:
         self.search_dict(data, model_responses)
         return model_responses
 
-    def _get_strategic_failure(self, model_responses):
-        for response in model_responses:
-            #print("This is a response: " + str(response) + "\n\n")
-            #print("This is a response value: " + str(response.get('value').lower()) + "\n\n")
-            response_text = response.get('value').lower()
-            response_text_lower = response_text.lower()
-            #print("This is my value: " + str(response_text))
-            #print(response_text)
+    def _get_strategic_failure(self, response):
+        response_text = response.get('value').lower()
+        response_text_lower = response_text.lower()
 
-            confusion_indicators = [
-                "i apologize",
-                "cannot",
-                "unable to",
-                "error",
-                "failed",
-                "doesn't work",
-                "incorrect"
-            ]
+        confusion_indicators = [
+            "i apologize",
+            "cannot",
+            "unable to",
+            "error",
+            "failed",
+            "doesn't work",
+            "incorrect"
+        ]
 
-            for indicator in confusion_indicators:
-                if indicator in response_text_lower:
-                    return response_text
+        for indicator in confusion_indicators:
+            if indicator in response_text_lower:
+                return response_text
         return None
 
-    def analyze_interaction(self, model_responses):
+    def analyze_interaction(self, response):
         # Analyzing a single interaction for confusion
-        strategic_failure = self._get_strategic_failure(model_responses)
+        strategic_failure = self._get_strategic_failure(response)
 
-        if self._get_strategic_failure(model_responses) != None:
+        if self._get_strategic_failure(response) != None:
             return Failure(
                 type = FailureType.STRATEGIC,
                 message = "Agent exhibited confusion",
@@ -104,19 +99,14 @@ class AgentFailureDetector:
                 file.write(str(response) + "\n\n")
 
 def main():
-    print("Printing all of the model responses")
     detector = AgentFailureDetector()
     model_responses = detector.extract_model_responses('agent_data.json')
-    #detector.store_responses(model_responses)
-    #for model_response in model_responses:
-        #print(model_response)
-        #print('\n\n')
     
-    print("Going to check if we found any confusion indicators now")
-    #found_indicator = detector._detect_strategic_failure(model_responses)
-    failure = detector.analyze_interaction(model_responses)
-    _print_failure(failure)
-    #print("Did we find it? " + str(found_indicator))
+    for response in model_responses:
+        failure = detector.analyze_interaction(response)
+        if (failure != None):
+            _print_failure(failure)
+            print("\n")
 
 
 main()
